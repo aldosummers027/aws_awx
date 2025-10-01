@@ -5,18 +5,9 @@
   connection: local
 
   vars:
-    # Definimos la ruta del reporte en UNA SOLA variable para consistencia
     report_path: "/tmp/reporte_inventario_aws.csv"
 
   tasks:
-    - name: "Asegurarse de que el directorio /tmp exista"
-      file:
-        path: "/tmp"
-        state: directory
-        mode: '0755'
-      delegate_to: localhost
-      run_once: true
-
     - name: "Crear encabezado del archivo CSV"
       lineinfile:
         path: "{{ report_path }}"
@@ -44,7 +35,6 @@
     - name: "Exponer el reporte como un artefacto descargable"
       set_stats:
         data:
-          # Nos aseguramos que el artefacto sea solo la ruta definida en la variable
           artifact: "{{ report_path }}"
       delegate_to: localhost
       run_once: true

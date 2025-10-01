@@ -1,0 +1,39 @@
+---
+- name: Generar Reporte Detallado de Inventario AWS
+  hosts: all
+  gather_facts: no
+  connection: local
+  vars:
+    report_path: "/tmp/reporte_inventario_aws.csv"
+
+  tasks:
+    - name: "Crear encabezado del archivo CSV"
+      lineinfile:
+        path: "{{ report_path }}"
+        line: "Account ID,Account Name,Instance Name,State,Type,vCPU,Memory (GB),Private IP,Launch Date"
+        create: yes
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
+
+    - name: "Extraer y añadir datos de cada instancia al CSV"
+      lineinfile:
+        path: "{{ report_path }}"
+        line: >-
+          {{ hostvars[inventory_hostname].ec2_owner_id | default('N/A') }},
+          {{ aws_account_name | default('N/A') }},
+          {{ hostvars[inventory_hostname].ec2_tag_Name | default(inventory_hostname) }},
+          {{ hostvars[inventory_hostname].ec2_instance_state | default('N/A') }},
+          {{ hostvars[inventory_hostname].ec2_instance_type | default('N/A') }},
+          {{ hostvars[inventory_hostname].ec2_vcpu_info.default_vcpus | default('N/A') }},
+          {{ hostvars[inventory_hostname].ec2_memory.size_in_gib | default('N/A') }},
+          {{ hostvars[inventory_hostname].private_ip_address | default('N/A') }},
+          {{ hostvars[inventory_hostname].ec2_launch_time | default('N/A') }}
+      delegate_to: localhost
+
+    - name: "Exponer el reporte como un artefacto descargable"
+      set_stats:
+        data:
+          artifact: "{{ report_path }}"
+      delegate_to: localhost
+      run_once: true

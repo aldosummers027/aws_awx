@@ -37,3 +37,9 @@
           artifact: "{{ report_path }}"
       delegate_to: localhost
       run_once: true
+    - name: "Exponer el reporte como un artefacto descargable"
+      set_stats:
+        data:
+          artifact: "/tmp/reportes/inventario_awx.csv"
+      delegate_to: localhost
+      run_once: true

@@ -52,14 +52,14 @@
           {{ porcentaje_disponibilidad }}%
       delegate_to: localhost
 
-- name: "Subir el reporte a un bucket S3 Compatible"
-  community.aws.s3_object:
-    bucket: "awx"
-    object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
-    src: "{{ report_path }}"
-    mode: put
-    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
-    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-    endpoint_url: "http://172.17.0.1:9000"  # <-- Si usas S3 compatible
-  delegate_to: localhost
-  run_once: true
+    - name: "Subir el reporte a un bucket S3 Compatible"
+      community.aws.s3_object:
+        bucket: "awx"
+        object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
+        src: "{{ report_path }}"
+        mode: put
+        aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+        endpoint_url: "http://172.17.0.1:9000"  # <-- Si usas S3 compatible
+      delegate_to: localhost
+      run_once: true

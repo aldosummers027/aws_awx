@@ -1,15 +1,20 @@
 ---
-- name: Generar Reporte de Disponibilidad de Instancias AWS
+- name: Generar y Subir Reporte Detallado de Inventario AWS
   hosts: all
   gather_facts: no
   connection: local
 
+  # --- CONFIGURA TUS VARIABLES AQUÍ ---
   vars:
     report_path: "/tmp/reporte_disponibilidad.csv"
-    periodo_segundos: 300  # 5 minutos
-    dias_reporte: 30
+    # Si usas S3 de AWS, deja el endpoint_url vacío o coméntalo.
+    # Si usas S3 compatible, pon aquí la URL.
+    s3_endpoint_url: "http://172.17.0.1:9000"
+    s3_bucket_name: "awx"
 
+  # --- INICIO DE LAS TAREAS ---
   tasks:
+
     - name: "Crear encabezado del archivo CSV"
       lineinfile:
         path: "{{ report_path }}"
@@ -25,9 +30,9 @@
         --namespace AWS/EC2
         --metric-name CPUUtilization
         --dimensions Name=InstanceId,Value={{ hostvars[inventory_hostname].ec2_instance_id }}
-        --start-time {{ (lookup('pipe', 'date -u -d \"' + dias_reporte | string + ' days ago\" +%Y-%m-%dT%H:%M:%SZ')) }}
+        --start-time {{ (lookup('pipe', 'date -u -d \"30 days ago\" +%Y-%m-%dT%H:%M:%SZ')) }}
         --end-time {{ (lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ')) }}
-        --period {{ periodo_segundos }}
+        --period 300
         --statistics SampleCount
       register: cloudwatch_data
       delegate_to: localhost
@@ -35,14 +40,11 @@
 
     - name: "Procesar datos y calcular disponibilidad"
       vars:
-        # Sumamos todos los puntos de datos. Cada punto representa 5 minutos en estado 'running'.
         total_datapoints: "{{ (cloudwatch_data.stdout | from_json).Datapoints | sum(attribute='SampleCount') | int }}"
-        minutos_encendido: "{{ total_datapoints * (periodo_segundos / 60) }}"
+        minutos_encendido: "{{ total_datapoints * 5 }}"
         horas_encendido: "{{ '%.2f' | format(minutos_encendido / 60) }}"
-
-        total_horas_periodo: "{{ dias_reporte * 24 }}"
+        total_horas_periodo: "{{ 30 * 24 }}"
         porcentaje_disponibilidad: "{{ '%.2f' | format((horas_encendido | float / total_horas_periodo | float) * 100) }}"
-
       lineinfile:
         path: "{{ report_path }}"
         line: >-
@@ -54,12 +56,12 @@
 
     - name: "Subir el reporte a un bucket S3 Compatible"
       community.aws.s3_object:
-        bucket: "awx"
+        bucket: "{{ s3_bucket_name }}"
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"
         mode: put
         aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
         aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-        endpoint_url: "http://172.17.0.1:9000"  # <-- Si usas S3 compatible
+        endpoint_url: "{{ s3_endpoint_url }}"
       delegate_to: localhost
       run_once: true

@@ -54,9 +54,10 @@
 
     - name: "Subir el reporte a un bucket de S3 (Opcional)"
       amazon.aws.s3_upload:
-        bucket: "nombre-de-tu-bucket" # Reemplaza esto
+        bucket: "awx" # Reemplaza esto
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"
         mode: put
+        endpoint_url: "http://172.17.0.1:9000"
       delegate_to: localhost
       run_once: true

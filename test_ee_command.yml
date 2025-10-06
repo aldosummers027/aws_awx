@@ -1,0 +1,14 @@
+---
+- name: "Ejecutar un comando local en el Entorno de Ejecución"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: "Ejecutar el comando: {{ command_to_run }}"
+      ansible.builtin.command: "{{ command_to_run }}"
+      register: command_output
+
+    - name: "Mostrar resultado del comando"
+      ansible.builtin.debug:
+        var: command_output.stdout_lines

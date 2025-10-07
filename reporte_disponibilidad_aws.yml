@@ -13,7 +13,6 @@
     s3_bucket_name: "awx"
 
   tasks:
-    # ... (El resto de las tareas no cambian) ...
     - name: "Crear encabezado del archivo CSV"
       lineinfile:
         path: "{{ report_path }}"
@@ -36,9 +35,9 @@
         --profile awx_profile
       environment:
         AWS_SHARED_CREDENTIALS_FILE: "/tmp/aws_credentials"
-        AWS_ACCESS_KEY_ID: "{{ lookup('awx.awx.credential', 'OXWACCINTNPRD').inputs.aws_access_key_id }}"
-        AWS_SECRET_ACCESS_KEY: "{{ lookup('awx.awx.credential', 'OXWACCINTNPRD').inputs.aws_secret_key }}"
-        AWS_SESSION_TOKEN: "{{ lookup('awx.awx.credential', 'OXWACCINTNPRD').inputs.aws_session_token | default('') }}"
+        AWS_ACCESS_KEY_ID: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_access_key_id }}"
+        AWS_SECRET_ACCESS_KEY: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_secret_key }}"
+        AWS_SESSION_TOKEN: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_session_token | default('') }}"
       register: cloudwatch_data
       delegate_to: localhost
       changed_when: false
@@ -64,8 +63,8 @@
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"
         mode: put
-        aws_access_key: "{{ lookup('awx.awx.credential', 'S3 credentials').inputs.aws_access_key_id }}"
-        aws_secret_key: "{{ lookup('awx.awx.credential', 'S3 credentials').inputs.aws_secret_key }}"
+        aws_access_key: "{{ lookup('tower.controller.credential', 'S3 credentials').inputs.aws_access_key_id }}"
+        aws_secret_key: "{{ lookup('tower.controller.credential', 'S3 credentials').inputs.aws_secret_key }}"
         endpoint_url: "{{ s3_endpoint_url }}"
       delegate_to: localhost
       run_once: true

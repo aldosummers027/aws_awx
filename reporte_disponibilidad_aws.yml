@@ -40,6 +40,7 @@
         --end-time "{{ end_date }}"
         --period 300
         --statistics SampleCount
+        --region {{ hostvars[inventory_hostname].ec2_placement_region }}
       register: cloudwatch_data
       delegate_to: localhost
       changed_when: false

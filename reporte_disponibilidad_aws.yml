@@ -38,7 +38,7 @@
         --dimensions Name=InstanceId,Value={{ inventory_hostname }}
         --start-time "{{ start_date }}"
         --end-time "{{ end_date }}"
-        --period 300
+        --period 3600
         --statistics SampleCount
         --region {{ hostvars[inventory_hostname].placement.region }}
       register: cloudwatch_data
@@ -48,8 +48,7 @@
     - name: "Procesar datos y calcular disponibilidad"
       vars:
         total_datapoints: "{{ (cloudwatch_data.stdout | from_json).Datapoints | sum(attribute='SampleCount') | int }}"
-        minutos_encendido: "{{ total_datapoints * 5 }}"
-        horas_encendido: "{{ '%.2f' | format(minutos_encendido / 60) }}"
+        horas_encendido: "{{ '%.2f' | format(total_datapoints) }}"
         total_horas_periodo: "{{ dias_del_mes * 24 }}"
         porcentaje_disponibilidad: "{{ '%.2f' | format((horas_encendido | float / total_horas_periodo | float) * 100) }}"
       lineinfile:

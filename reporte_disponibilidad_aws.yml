@@ -70,14 +70,13 @@
       delegate_to: localhost
 
     - name: "Subir el reporte a un bucket S3"
-      community.aws.s3_object:
+      community.aws.s3_sync:
         bucket: "{{ s3_bucket_name }}"
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"
         mode: put
         aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
         aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-        aws_session_token: "{{ lookup('env', 'AWS_SESSION_TOKEN') }}" # <-- LÍNEA AÑADIDA
         endpoint_url: "{{ s3_endpoint_url }}"
       delegate_to: localhost
       run_once: true

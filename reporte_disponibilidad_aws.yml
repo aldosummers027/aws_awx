@@ -4,23 +4,30 @@
   gather_facts: no
   connection: local
 
-  # --- CONFIGURA TUS VARIABLES AQUÍ ---
   vars:
     report_path: "/tmp/reporte_disponibilidad.csv"
-    
-    # --- RANGO DE FECHAS FIJO ---
-    # Formato: AAAA-MM-DDTHH:MM:SSZ
     start_date: "2025-09-01T00:00:00Z"
     end_date: "2025-09-30T23:59:59Z"
-    dias_del_mes: 30 # <-- Número de días en tu rango
-
-    # --- Configuración S3 ---
+    dias_del_mes: 30
     s3_endpoint_url: "http://172.17.0.1:9000"
     s3_bucket_name: "awx"
 
-  # --- INICIO DE LAS TAREAS ---
-  tasks:
+  pre_tasks:
+    - name: "Crear archivo de credenciales de AWS temporal"
+      template:
+        src: |
+          [awx_profile]
+          aws_access_key_id = {{ lookup('env', 'AWS_ACCESS_KEY_ID') }}
+          aws_secret_access_key = {{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}
+          aws_session_token = {{ lookup('env', 'AWS_SESSION_TOKEN') }}  # <-- LÍNEA AÑADIDA
+          region = {{ hostvars[inventory_hostname].placement.region }}
+        dest: "/tmp/aws_credentials"
+        mode: '0600'
+      delegate_to: localhost
+      run_once: true
 
+  tasks:
+    # ... (El resto de las tareas no cambian) ...
     - name: "Crear encabezado del archivo CSV"
       lineinfile:
         path: "{{ report_path }}"
@@ -40,7 +47,9 @@
         --end-time "{{ end_date }}"
         --period 3600
         --statistics SampleCount
-        --region {{ hostvars[inventory_hostname].placement.region }}
+        --profile awx_profile
+      environment:
+        AWS_SHARED_CREDENTIALS_FILE: "/tmp/aws_credentials"
       register: cloudwatch_data
       delegate_to: localhost
       changed_when: false
@@ -61,13 +70,14 @@
       delegate_to: localhost
 
     - name: "Subir el reporte a un bucket S3"
-      community.aws.s3_sync:
+      community.aws.s3_object:
         bucket: "{{ s3_bucket_name }}"
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"
         mode: put
         aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
         aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+        aws_session_token: "{{ lookup('env', 'AWS_SESSION_TOKEN') }}" # <-- LÍNEA AÑADIDA
         endpoint_url: "{{ s3_endpoint_url }}"
       delegate_to: localhost
       run_once: true

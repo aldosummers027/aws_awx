@@ -55,7 +55,7 @@
       delegate_to: localhost
 
     - name: "Subir el reporte a un bucket S3 Compatible"
-      community.aws.s3_object:
+      community.aws.s3_sync:
         bucket: "{{ s3_bucket_name }}"
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"

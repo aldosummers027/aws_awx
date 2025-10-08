@@ -1,0 +1,20 @@
+---
+- name: Subir Reporte a S3 Compatible (MinIO)
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    report_path: "/tmp/reporte_disponibilidad.csv"
+    s3_endpoint_url: "http://172.17.0.1:9000"
+    s3_bucket_name: "awx"
+
+  tasks:
+    - name: "Subir el reporte a MinIO"
+      community.aws.s3_object:
+        bucket: "{{ s3_bucket_name }}"
+        object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
+        src: "{{ report_path }}"
+        mode: put
+        endpoint_url: "{{ s3_endpoint_url }}"
+      run_once: true

@@ -22,5 +22,4 @@
         src: "{{ report_path }}"
         mode: put
         endpoint_url: "{{ s3_endpoint_url }}"
-        s3_signature_version: "s3v4"
       run_once: true

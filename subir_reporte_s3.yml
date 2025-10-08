@@ -11,7 +11,7 @@
 
     # --- Variables para la tarea ---
     report_path: "/tmp/reporte_disponibilidad.csv"
-    s3_endpoint_url: "http://172.17.0.1:9000"
+    s3_endpoint_url: "http://172.30.194.105:9000"
     s3_bucket_name: "awx"
 
   tasks:

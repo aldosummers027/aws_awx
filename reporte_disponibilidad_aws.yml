@@ -63,7 +63,8 @@
         aws_access_key: "{{ minio_access_key }}"
         aws_secret_key: "{{ minio_secret_key }}"
         validate_certs: false
-      environment:
-        BOTO_S3_ADDRESSING_STYLE: "path"
+        s3_boto_config:
+          s3:
+            addressing_style: "path"
       delegate_to: localhost
       run_once: true

@@ -63,8 +63,6 @@
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"
         mode: put
-        aws_access_key: "{{ lookup('tower.controller.credential', 'S3 credentials').inputs.aws_access_key_id }}"
-        aws_secret_key: "{{ lookup('tower.controller.credential', 'S3 credentials').inputs.aws_secret_key }}"
         endpoint_url: "{{ s3_endpoint_url }}"
       delegate_to: localhost
       run_once: true

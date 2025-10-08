@@ -5,6 +5,11 @@
   connection: local
 
   vars:
+    # --- Forzar la ruta de las colecciones ---
+    ansible_collections_paths:
+      - /usr/share/ansible/collections
+
+    # --- Variables para la tarea ---
     report_path: "/tmp/reporte_disponibilidad.csv"
     s3_endpoint_url: "http://172.17.0.1:9000"
     s3_bucket_name: "awx"

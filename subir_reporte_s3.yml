@@ -16,7 +16,7 @@
 
   tasks:
     - name: "Subir el reporte a MinIO"
-      community.aws.s3_object:
+      amazon.aws.s3_object:
         bucket: "{{ s3_bucket_name }}"
         object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
         src: "{{ report_path }}"

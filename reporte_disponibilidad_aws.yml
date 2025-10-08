@@ -54,14 +54,14 @@
       delegate_to: localhost
 
     - name: "Subir el reporte a MinIO usando AWS CLI"
-      ansible.builtin.command: >
+      ansible.builtin.shell: |
+        unset AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
         aws s3 cp {{ report_path }} s3://{{ s3_bucket_name }}/reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv --endpoint-url {{ s3_endpoint_url }}
       environment:
-        # Credenciales para la CLI
+        # Definimos explícitamente las credenciales de MinIO para este comando
         AWS_ACCESS_KEY_ID: "{{ minio_access_key }}"
         AWS_SECRET_ACCESS_KEY: "{{ minio_secret_key }}"
-        # Región por defecto, necesaria para la firma v4
         AWS_DEFAULT_REGION: "us-east-1"
       delegate_to: localhost
       run_once: true
-      changed_when: true # Asumimos que si el comando tiene éxito, es un cambio
+      changed_when: true

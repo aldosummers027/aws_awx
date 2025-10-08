@@ -33,10 +33,6 @@
         --period 3600
         --statistics SampleCount
         --region {{ hostvars[inventory_hostname].placement.region }}
-      environment:
-        AWS_ACCESS_KEY_ID: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_access_key_id }}"
-        AWS_SECRET_ACCESS_KEY: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_secret_key }}"
-        AWS_SESSION_TOKEN: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_session_token | default('') }}"
       register: cloudwatch_data
       delegate_to: localhost
       changed_when: false

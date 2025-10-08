@@ -9,7 +9,7 @@
     start_date: "2025-09-01T00:00:00Z"
     end_date: "2025-09-30T23:59:59Z"
     dias_del_mes: 30
-    s3_endpoint_url: "http://172.17.0.1:9000"
+    s3_endpoint_url: "http://172.30.194.105:9000"
     s3_bucket_name: "awx"
 
   tasks:

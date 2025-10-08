@@ -36,10 +36,9 @@
       changed_when: false
 
     - name: "Procesar datos y añadir al CSV"
-      # ... (Esta tarea no cambia)
       vars:
         total_datapoints: "{{ (cloudwatch_data.stdout | from_json).Datapoints | sum(attribute='SampleCount') | int }}"
-        horas_encendido: "{{ '%.2f' | format(total_datapoints) }}"
+        horas_encendido: "{{ '%.2f' | format(total_datapoints | float) }}"
         total_horas_periodo: "{{ dias_del_mes * 24 }}"
         porcentaje_disponibilidad: "{{ '%.2f' | format((horas_encendido | float / total_horas_periodo | float) * 100) }}"
       lineinfile:

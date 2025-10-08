@@ -9,8 +9,6 @@
     start_date: "2025-09-01T00:00:00Z"
     end_date: "2025-09-30T23:59:59Z"
     dias_del_mes: 30
-    s3_endpoint_url: "http://172.17.0.1:9000"
-    s3_bucket_name: "awx"
 
   tasks:
     - name: "Crear encabezado del archivo CSV"
@@ -22,7 +20,7 @@
       delegate_to: localhost
       run_once: true
 
-    - name: "Consultar métricas de CloudWatch para cada instancia"
+    - name: "Consultar métricas de CloudWatch"
       ansible.builtin.command: >
         aws cloudwatch get-metric-statistics
         --namespace AWS/EC2
@@ -32,17 +30,13 @@
         --end-time "{{ end_date }}"
         --period 3600
         --statistics SampleCount
-        --profile awx_profile
-      environment:
-        AWS_SHARED_CREDENTIALS_FILE: "/tmp/aws_credentials"
-        AWS_ACCESS_KEY_ID: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_access_key_id }}"
-        AWS_SECRET_ACCESS_KEY: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_secret_key }}"
-        AWS_SESSION_TOKEN: "{{ lookup('tower.controller.credential', 'OXWACCINTNPRD').inputs.aws_session_token | default('') }}"
+        --region {{ hostvars[inventory_hostname].placement.region }}
       register: cloudwatch_data
       delegate_to: localhost
       changed_when: false
 
-    - name: "Procesar datos y calcular disponibilidad"
+    - name: "Procesar datos y añadir al CSV"
+      # ... (Esta tarea no cambia)
       vars:
         total_datapoints: "{{ (cloudwatch_data.stdout | from_json).Datapoints | sum(attribute='SampleCount') | int }}"
         horas_encendido: "{{ '%.2f' | format(total_datapoints) }}"
@@ -57,14 +51,8 @@
           {{ porcentaje_disponibilidad }}%
       delegate_to: localhost
 
-    - name: "Subir el reporte a un bucket S3"
-      community.aws.s3_sync:
-        bucket: "{{ s3_bucket_name }}"
-        object: "reportes/disponibilidad-{{ lookup('pipe', 'date +%Y-%m-%d') }}.csv"
-        src: "{{ report_path }}"
-        mode: put
-        aws_access_key: "{{ lookup('tower.controller.credential', 'S3 credentials').inputs.aws_access_key_id }}"
-        aws_secret_key: "{{ lookup('tower.controller.credential', 'S3 credentials').inputs.aws_secret_key }}"
-        endpoint_url: "{{ s3_endpoint_url }}"
-      delegate_to: localhost
+    - name: "Guardar el reporte como artefacto para el siguiente paso"
+      set_stats:
+        data:
+          artifact_path: "{{ report_path }}"
       run_once: true
